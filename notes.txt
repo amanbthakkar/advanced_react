@@ -1,0 +1,128 @@
+#########################################
+import React, { useState } from "react";
+
+const ErrorExample = () => { //has to be uppercase
+  // console.log(useState("Hello")); //returns an array [value, function_that_changes_that_value]
+  // const value = useState("Aman")[0];
+  // const handler = useState("Aman")[1];
+  const [text, setText] = useState("Aman"); //hooks have to start with use
+  //this is array destructuring btw
+  //serves as initial value
+  //text is the value, setText is the function which is invoked to change this value
+  //convention is to use <var>, <setVar>
+  const clickHandler = () => {
+    if (text === "Aman") setText("Riya");
+    else setText("Aman");
+  };
+  return (
+    <React.Fragment>
+      <div className="container">
+        <h2>Hii {text}</h2>
+        <button type="button" className="btn" onClick={clickHandler}>
+          Change name
+        </button>
+      </div>
+    </React.Fragment>
+  );
+};
+
+export default ErrorExample;
+
+#####################################################################
+
+
+->>>>Hooks have to start with use
+->>>>>the components that have hooks have to be UpperCase (TitleCase)
+->>>>>the hook line cannot be defined outside function body
+#####################################################################
+
+import React from "react";
+import { data } from "../../../data";
+//can look at file for the example array
+const UseStateArray = () => {
+  const [people, setPeople] = React.useState(data); //data array, can import inline also
+  const [action, setAction] = React.useState("Delete");
+  const deletePeople = () => {
+    if (people.length > 0) {
+      setPeople([]);
+      setAction("Get Back");
+    } else {
+      setPeople(data);
+      setAction("Delete");
+    }
+  };
+
+  return (
+    <>
+      {people.map((person) => {
+        const { id, name } = person;
+        return (
+          <div className="item" key={id}>
+            <h4>{name}</h4>
+          </div>
+        );
+      })}
+      <button type="button" className="btn" onClick={deletePeople}>
+        {action} People
+      </button>
+    </>
+  );
+};
+
+export default UseStateArray;
+
+#####################################################################
+
+NOTE-> you can also define the hook function inside onClick = {}, but remember it should 
+be an arrow {()=>function} because simple { function()} will get invoked immediately
+
+let newPeople = people.filter((person) => person.id != id);
+FILTER METHOD IS IMPORTANT, just like map!
+
+import React from "react";
+import { data } from "../../../data";
+//can look at file for the example array
+const UseStateArray = () => {
+  const [people, setPeople] = React.useState(data); //data array, can import inline also
+  const [action, setAction] = React.useState("Delete");
+  const deletePeople = () => {
+    if (people.length > 0) {
+      setPeople([]);
+      setAction("Get Back");
+    } else {
+      setPeople(data);
+      setAction("Delete");
+    }
+  };
+  const removeItem = (id) => {
+    //filter out the matching id;
+    let newPeople = people.filter((person) => person.id != id);
+    setPeople(newPeople);
+    if (newPeople.length > 0) setAction("Delete");
+    else setAction("Get Back");
+  };
+  return (
+    <>
+      {people.map((person) => {
+        const { id, name } = person;
+        return (
+          <div className="item" key={id}>
+            <h4>{name}</h4>
+            <button type="button" onClick={() => removeItem(id)}>
+              Remove
+            </button>
+          </div>
+        );
+      })}
+      <button type="button" className="btn" onClick={deletePeople}>
+        {action} People
+      </button>
+    </>
+  );
+};
+
+export default UseStateArray;
+
+
+#AGAIN V V V IMP, if passing argument to function, always make it arrow function rather than just reference
+or else it will get invoked RIGHT AWAY!
