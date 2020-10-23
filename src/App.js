@@ -1,5 +1,5 @@
 import React from "react";
-import Setup from "./tutorial/1-useState/setup/5-useState-counter";
+import Setup from "./tutorial/2-useEffect/setup/2-useEffect-cleanup";
 
 //named export so giving one fixed name of Setup in this file
 

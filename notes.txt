@@ -191,3 +191,112 @@ const UseStateObject = () => {
 
 ###############################################################################
 
+USE EFFECT:
+
+// by default runs after every re-render**
+// cleanup function
+// second parameter
+const UseEffectBasics = () => {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    //stuff inside callback will run on every render
+    console.log("Called after every render");
+    if (value > 0) document.title = `New messages(${value})`;
+  });
+  console.log("Render component");
+  return (
+    <>
+      <h2>{value}</h2>
+      <button type="button" className="btn" onClick={() => setValue(value + 1)}>
+        Change
+      </button>
+    </>
+  );
+};
+
+export default UseEffectBasics;
+
+//useEffects used when we want to set up some side effects outside of the component
+//it runs at every re-render and hence can be used to change the title of the page and all
+//data fetching, listening for events, signing up for subscriptions
+//HOOKS CANT BE SET INSIDE IF
+
+###############################################################################
+
+// by default runs after every re-render
+// cleanup function
+// second parameter**
+const UseEffectBasics = () => {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    //stuff inside callback will run on every render
+    console.log("Called after every render");
+    if (value > 0) document.title = `New messages(${value})`;
+    // });//can also pass 2nd argument here!
+  }, [value]); //if empty, it is not called on re-render
+  console.log("Render component");
+  return (
+    <>
+      <h2>{value}</h2>
+      <button type="button" className="btn" onClick={() => setValue(value + 1)}>
+        Change
+      </button>
+    </>
+  );
+};
+
+export default UseEffectBasics;
+
+//what else about the 2nd parameter?
+//that array has values, and the function will run only if any of the values present in the
+//array is changed. So if 'value' is changed by the setValue function, then the useEffect will run.
+//otherwise it will not run.
+//can have more than one useEffects! if you have another one with empty array then it will
+//not be run on further re-renders!
+
+###############################################################################
+
+CLEANUP function
+import React, { useState, useEffect } from "react";
+
+// cleanup function
+// second argument
+
+const UseEffectCleanup = () => {
+  const [size, setSize] = useState(window.innerWidth);
+
+  const checkSize = () => {
+    setSize(window.innerWidth);
+    // window.removeEventListener("resize", checkSize); if I add this, then the value also stops changing!
+  };
+  useEffect(
+    () => {
+      console.log("There is a rerender");
+      window.addEventListener("resize", checkSize); //it's checkSize, not checkSize()
+      // return () => {
+      //   console.log("Cleanup");
+      //   window.removeEventListener("resize", checkSize);
+      // };
+    } /*,[]*/
+  );
+  return (
+    <>
+      <h1>window</h1>
+      <h2>{size}</h2>
+    </>
+  );
+};
+
+export default UseEffectCleanup;
+
+//want to set up a listener on the browser window
+//remember - useState automatically triggers a rerender because of value change
+//eventListener added each and everytime if:
+//1. [] is not included
+//2. cleanup is not applied
+//eventListener is diff - once created it stays unless destroyed or cleaned up!
+//this part if unclear is best understood thru video:
+//https://youtu.be/4UZrsTqkcW4?t=19043
+//whenever you set up side effects, it is good practice to set up cleanup functions to avoid
+//too many listeners being created and having a memory leak
+
