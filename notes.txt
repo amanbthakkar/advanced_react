@@ -300,3 +300,239 @@ export default UseEffectCleanup;
 //whenever you set up side effects, it is good practice to set up cleanup functions to avoid
 //too many listeners being created and having a memory leak
 
+###############################################################################
+FETCHING DATA AND ASYNC_AWAIT TRICKS
+
+import React, { useState, useEffect } from "react";
+
+const url = "https://api.github.com/users";
+
+const UseEffectFetchData = () => {
+  const [users, setUsers] = useState([]);
+
+  const getUsers = async () => {
+    const response = await fetch(url);
+    const users = await response.json();
+    setUsers(users);
+    // console.log(users);
+  };
+  useEffect(() => {
+    //we want a fetch request
+    //useEffect cannot be an async function!!
+    //async functions return a promise and that is not allowed here
+    //so set up async Inside the callback, or as a separate function Outside
+    getUsers();
+  }, []); //add dependency array to prevent rerender on useState() - infinite loop avoiding
+  return (
+    <>
+      <h1>Github users</h1>
+      <ul className="users">
+        {users.map((user) => {
+          //add a key whenever you map over array!
+          const { id, login, avatar_url, html_url } = user;
+          return (
+            <li key={id}>
+              <img src={avatar_url} alt={login}></img>
+              <div>
+                <h4>{login}</h4>
+                <a href={html_url}>Profile</a>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  );
+};
+
+export default UseEffectFetchData;
+
+
+###############################################################################
+
+CONDITIONAL RENDERING
+
+import React, { useState, useEffect } from "react";
+const url = "https://api.github.com/users/QuincyLarson";
+const MultipleReturns = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setisError] = useState(false);
+  const [user, setUser] = useState("Default user");
+
+  useEffect(() => {
+    fetch(url)
+      .then((resp) => {
+        if (resp.status >= 200 && resp.status <= 299) {
+          return resp.json();
+        } else {
+          setIsLoading(false);
+          setisError(true);
+          throw new Error(resp.statusText);
+        } //check status here
+      })
+      .then((user) => {
+        const { login } = user;
+        setUser(login);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        //actually fetch errors are just network errors, not like 404 - data not found
+        console.log(error);
+      });
+  }, []); //just initial render
+  if (isLoading) {
+    return (
+      <div>
+        <h1>Loading...</h1>
+      </div>
+    );
+  }
+  if (isError) {
+    return (
+      <div>
+        <h1>Error...</h1>
+      </div>
+    );
+  }
+  const buttonClick = (user) => {
+    console.log(`User is ${user}`);
+  };
+  const ref = buttonClick;
+  return (
+    <div>
+      <h1>{user}</h1>
+      <button className="btn" onClick={(x) => ref(x)}>
+        Click me
+      </button>
+    </div>
+  );
+};
+
+export default MultipleReturns;
+
+###############################################################################
+
+Short Circuit Evaluation:
+
+import React, { useState } from "react";
+// short-circuit evaluation
+// ternary operator
+
+const ShortCircuit = () => {
+  const [text, setText] = useState("S"); //leave it empty for true and false
+  const firstValue = text || "hello world"; //when true returns first value
+  const secondValue = text && "hello world"; //when true returns second value, false returns first
+
+  return (
+    <>
+      {/* <h1>{firstValue}</h1>
+      <h1>Value:{secondValue}</h1> */}
+      <h1>{text || "It's empty"}</h1>
+      {/* returns 'Its empty' when the String is empty */}
+      {text && <h1>Displayed if not empty, else nothing!</h1>}
+      {!text && <h2>Displayed if empty, else nothing!</h2>}
+    </>
+  );
+};
+
+export default ShortCircuit;
+//we need to return something in our JSX right,
+//hence if statements are not allowed in react.
+//that's why we use short circuit operators!
+//so we can display something completely
+//now we have done multiple returns for multiple cases,
+//but conditional rendering is where you want to show or hide something based on a condition
+
+// for or operator, if LHS is true then LHS is returned
+// for and operator, if LHS is true then RHS is returned
+// and if LHS is false then nothing is returned
+
+###############################################################################
+
+Terneray operator:
+
+const TestComponent = () => {
+  return (
+    <ul>
+      <li>This is displayed</li>
+      <li>As a test component</li>
+      <li>When the error is false</li>
+    </ul>
+  );
+};
+
+const ShortCircuit = () => {
+  const [text, setText] = useState(""); //leave it empty for true and false
+  // const firstValue = text || "hello world"; //when true returns first value
+  // const secondValue = text && "hello world"; //when true returns second value, false returns first
+
+  const [isError, setIsError] = useState(false);
+
+  return (
+    <>
+      {/* <h1>Value:{secondValue}</h1> */}
+      <h1>{text || "Empty string"}</h1>
+      <button className="btn" onClick={() => setIsError(!isError)}>
+        Toggle Error
+      </button>
+      {/* returns 'Its empty' when the String is empty */}
+      {/* {isError && <h1>Error is true </h1>} */}
+      {isError ? <h1>Error is true</h1> : <TestComponent />}
+    </>
+  );
+};
+
+export default ShortCircuit;
+
+###############################################################################
+Now an example, that shows us the show/hide 
+But also the importance of a cleanup function and that the [] on useEffect does not
+save us all the time!
+
+import { cleanup } from "@testing-library/react";
+import React, { useState, useEffect } from "react";
+
+const ShowHide = () => {
+  const [show, setShow] = useState(false);
+  return (
+    <React.Fragment>
+      <button
+        className="btn"
+        onClick={() => {
+          setShow(!show);
+        }}
+      >
+        Show/Hide
+      </button>
+      {show ? <Item /> : <></>}
+    </React.Fragment>
+  );
+};
+
+const Item = () => {
+  const [size, setSize] = useState(window.innerWidth);
+
+  const checkSize = () => {
+    setSize(window.innerWidth);
+  };
+
+  useEffect(() => {
+    console.log("In useEffect");
+    window.addEventListener("resize", checkSize); //toggle is rerendering the Item component again and again, so just an empty dependency list wont work!
+    //we will need to add a cleanup function to close the window event listener!
+    return () => {
+      window.removeEventListener("resize", checkSize);
+    };
+  }, []); //empty dependence so only initial render
+  return (
+    <div style={{ marginTop: "2rem" }}>
+      <h1>window</h1>
+      <h2>size: {size}</h2>
+    </div>
+  );
+};
+export default ShowHide;
+
+//remember that cleanup function is always needed on some side effect functionality
+//what was side effect? changing things outside the component
+//will be needed for the eventListener on the DOM window
